@@ -3,8 +3,8 @@
     angular.module('NarrowItDownApp', [])
     .controller('NarrowItDownController',NarrowItDownController)
     .service('MenuSearchService',MenuSearchService)
-    .directive('foundItems', FoundItemsDirective)
-    .constant('ApiBasePath', "https://davids-restaurant.herokuapp.com");    
+    .constant('ApiBasePath', "https://davids-restaurant.herokuapp.com")
+    .directive('foundItems', FoundItemsDirective);    
 
     function FoundItemsDirective() {
         var ddo = {
@@ -22,23 +22,27 @@
         return ddo;
     }
     
-    NarrowItDownController.$inject = ['MenuSearchService','ApiBasePath'];
+    NarrowItDownController.$inject = ['MenuSearchService'];
     function NarrowItDownController(MenuSearchService){
         var list = this;
         list.searchTerm = "";
         list.errMsg = "";
-        list.found = [];
+        // list.found = [];
 
-        list.getMatchedMenuItems = function(){
-            var promise = MenuSearchService.searchItems(list.searchTerm);
+        list.getMatchedMenuItems = function(searchTerm){
+            var promise = MenuSearchService.searchItems(searchTerm);
             promise.then(function(items){
-                console.log(items);
-                if(list.searchTerm!=="" && items.length>0)
+                // console.log(list.searchTerm);
+                // console.log(items);
+                if(searchTerm!=="" && items.length>0){
                     list.found = items;
-                else    
+                    list.errMsg = "";
+                }
+                else{
                     list.errMsg = "Nothing found";
-                
-                    console.log(list.found);    
+                    list.found = [];
+                }    
+                // console.log(list.found);    
             }).catch(function(error){
                 list.errMsg = error.message;
             })
@@ -51,13 +55,13 @@
 
     MenuSearchService.$inject = ['$http','ApiBasePath']
     function MenuSearchService($http, ApiBasePath) {
-        var items = [];
         this.searchItems = function(searchTerm){
             return $http({
                 method : 'GET',
                 url : (ApiBasePath + "/menu_items.json")
             }).then(function(result){
                 // console.log(result.data.menu_items);
+                var items = [];
                 for(var i = 0; i<result.data.menu_items.length; i++){
                     var desc = result.data.menu_items[i].description;
                     // console.log(desc);
